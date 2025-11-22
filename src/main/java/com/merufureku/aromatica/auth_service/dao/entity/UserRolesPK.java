@@ -3,10 +3,12 @@ package com.merufureku.aromatica.auth_service.dao.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @Embeddable
 @AllArgsConstructor
 @NoArgsConstructor

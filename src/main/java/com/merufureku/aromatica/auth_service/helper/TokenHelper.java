@@ -3,7 +3,6 @@ package com.merufureku.aromatica.auth_service.helper;
 import com.merufureku.aromatica.auth_service.dao.entity.Token;
 import com.merufureku.aromatica.auth_service.dao.entity.Users;
 import com.merufureku.aromatica.auth_service.dao.repository.TokenRepository;
-import com.merufureku.aromatica.auth_service.dto.token.ParsedTokenInfo;
 import com.merufureku.aromatica.auth_service.exception.ServiceException;
 import com.merufureku.aromatica.auth_service.utilities.TokenUtility;
 import org.apache.logging.log4j.LogManager;
@@ -47,10 +46,10 @@ public class TokenHelper {
         return generatedToken;
     }
 
-    private Token saveToken(String id, Integer userId, String generatedToken){
+    private void saveToken(String id, Integer userId, String generatedToken){
 
         var token = Token.builder()
-                .id(id)
+                .jti(id)
                 .userId(userId)
                 .token(generatedToken)
                 .createdDt(LocalDateTime.now())
@@ -58,14 +57,12 @@ public class TokenHelper {
                 .build();
 
         tokenRepository.save(token);
-
-        return token;
     }
 
-    public void validateToken(Integer userId, String id,  String validatingToken){
+    public void validateToken(Integer userId, String jti,  String validatingToken){
         logger.info("Validating token for: {}", userId);
 
-        var originalToken = tokenRepository.findByIdAndUserId(id, userId)
+        var originalToken = tokenRepository.findByUserIdAndJti(userId, jti)
                 .orElseThrow(() -> new ServiceException(INVALID_TOKEN));
 
         if (!originalToken.getToken().equals(validatingToken)){
@@ -78,27 +75,9 @@ public class TokenHelper {
         }
     }
 
-    public void invalidateToken(String id, Integer userId){
-
-        logger.info("Removing jti {}", id);
-        tokenRepository.deleteByIdAndUserId(id, userId);
-        logger.info(TOKEN_INVALIDATED);
-    }
-
     public void invalidateToken(Integer userId){
         logger.info("Removing token based from User ID {}", userId);
-        tokenRepository.deleteByUserId(userId);
+        tokenRepository.deleteById(userId);
         logger.info(TOKEN_INVALIDATED);
     }
-
-    public ParsedTokenInfo parseAndValidateToken(String token) {
-        var claims = tokenUtility.parseToken(token);
-        var jti = claims.getId();
-        var userId = claims.get("userId", Integer.class);
-
-        validateToken(userId, jti, token);
-
-        return new ParsedTokenInfo(userId, jti);
-    }
-
 }

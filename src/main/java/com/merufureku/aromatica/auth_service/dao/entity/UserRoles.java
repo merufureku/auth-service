@@ -2,11 +2,13 @@ package com.merufureku.aromatica.auth_service.dao.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @Entity
+@Builder
 @Table(name = "user_roles")
 @AllArgsConstructor
 @NoArgsConstructor

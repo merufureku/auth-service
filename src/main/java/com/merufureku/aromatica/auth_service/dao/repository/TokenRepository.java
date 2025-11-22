@@ -7,11 +7,8 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface TokenRepository extends JpaRepository<Token, String> {
+public interface TokenRepository extends JpaRepository<Token, Integer> {
 
-    Optional<Token> findByIdAndUserId(String token, Integer userId);
+    Optional<Token> findByUserIdAndJti(Integer userId, String token);
 
-    void deleteByIdAndUserId(String id, Integer userId);
-
-    void deleteByUserId(Integer userId);
 }

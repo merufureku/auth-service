@@ -1,13 +1,8 @@
 package com.merufureku.aromatica.auth_service.services.impl;
 
-import com.merufureku.aromatica.auth_service.dao.entity.Users;
 import com.merufureku.aromatica.auth_service.dao.repository.UsersRepository;
-import com.merufureku.aromatica.auth_service.dto.params.BaseParam;
-import com.merufureku.aromatica.auth_service.dto.params.LoginParam;
-import com.merufureku.aromatica.auth_service.dto.params.RegisterParam;
-import com.merufureku.aromatica.auth_service.dto.responses.BaseResponse;
-import com.merufureku.aromatica.auth_service.dto.responses.LoginResponse;
-import com.merufureku.aromatica.auth_service.dto.responses.RegisterResponse;
+import com.merufureku.aromatica.auth_service.dto.params.*;
+import com.merufureku.aromatica.auth_service.dto.responses.*;
 import com.merufureku.aromatica.auth_service.exception.ServiceException;
 import com.merufureku.aromatica.auth_service.helper.AuthServiceHelper;
 import com.merufureku.aromatica.auth_service.helper.TokenHelper;
@@ -15,13 +10,15 @@ import com.merufureku.aromatica.auth_service.services.interfaces.IAuthService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import static com.merufureku.aromatica.auth_service.enums.CustomStatusEnums.NO_USER_FOUND;
-import static com.merufureku.aromatica.auth_service.enums.CustomStatusEnums.USERNAME_ALREADY_EXIST;
+import static com.merufureku.aromatica.auth_service.enums.CustomStatusEnums.*;
 
 @Service
+@Transactional(rollbackFor = Exception.class)
 public class AuthServiceImpl1 implements IAuthService {
 
     private final Logger logger = LogManager.getLogger(this.getClass());
@@ -52,7 +49,7 @@ public class AuthServiceImpl1 implements IAuthService {
         var response = new RegisterResponse(
                 users.getId(),
                 users.getUsername(),
-                users.getEmail(),
+                users.getUserDetails().getEmail(),
                 users.getCreatedAt()
         );
 
@@ -74,15 +71,79 @@ public class AuthServiceImpl1 implements IAuthService {
             throw new ServiceException(NO_USER_FOUND);
         }
 
-        // invalidates old token
         tokenHelper.invalidateToken(user.getId());
 
-        // generate new token
         String generatedToken = tokenHelper.generateToken(user);
+
+        authServiceHelper.updateLastLoginDate(user);
 
         logger.info("Authentication success for {}", params.username());
 
         return new BaseResponse<>(HttpStatus.OK.value(), "Authenticate Success",
                 new LoginResponse(user.getId(), generatedToken));
+    }
+
+    @Override
+    public boolean logout(Integer id, BaseParam baseParam) {
+
+        logger.info("Logging out user with ID: {}", id);
+
+        tokenHelper.invalidateToken(id);
+
+        logger.info("User with ID: {} logged out successfully", id);
+
+        return true;
+    }
+
+    @Override
+    public BaseResponse<MyDetailsResponse> myDetails(Integer id, BaseParam baseParam) {
+
+        logger.info("Fetching details for user with ID: {}", id);
+
+        var user = usersRepository.findById(id)
+                .orElseThrow(() -> new ServiceException(NO_USER_FOUND));
+
+        logger.info("Fetched details for user with ID: {} success", id);
+
+        return new BaseResponse<>(HttpStatus.OK.value(), "Get User Details Success",
+                new MyDetailsResponse(user));
+    }
+
+    @Override
+    public BaseResponse<UpdateUserDetailsResponse> updateProfile(Integer id, UpdateUserDetailsParam updateUserDetailsParam, BaseParam baseParam) {
+
+        logger.info("Updating details for user with ID: {}", id);
+
+        var user = usersRepository.findById(id)
+                .orElseThrow(() -> new ServiceException(NO_USER_FOUND));
+
+        var updatedUser = authServiceHelper.updateUser(user, updateUserDetailsParam);
+
+        return new BaseResponse<>(HttpStatus.OK.value(), "Update Profile Success",
+                new UpdateUserDetailsResponse(updatedUser));
+    }
+
+    @Override
+    public boolean changePassword(Integer id, ChangePasswordParam changePasswordParam, BaseParam baseParam) {
+
+        logger.info("Changing password for user with ID: {}", id);
+
+        authServiceHelper.validateNewPassword(changePasswordParam);
+
+        var user = usersRepository.findById(id)
+                .orElseThrow(() -> new ServiceException(NO_USER_FOUND));
+
+        if (!passwordEncoder.matches(changePasswordParam.oldPassword(), user.getPassword())){
+            throw new ServiceException(INVALID_PASSWORD);
+        }
+
+        var bCryptPasswordEncoder = new BCryptPasswordEncoder(12);
+        user.setPassword(bCryptPasswordEncoder.encode(changePasswordParam.newPassword()));
+
+        usersRepository.save(user);
+
+        logger.info("Password changed successfully for user with ID: {}", id);
+
+        return true;
     }
 }

@@ -20,18 +20,18 @@ import java.time.LocalDateTime;
 public class Token {
 
     @Id
-    @Column(name = "ID")
-    private String id;
-
-    @Column(name = "USER_ID", nullable = false)
+    @Column(name = "user_id", nullable = false)
     private Integer userId;
 
-    @Column(name = "TOKEN")
+    @Column(name = "jti")
+    private String jti;
+
+    @Column(name = "token")
     private String token;
 
-    @Column(name = "CREATED_DT")
+    @Column(name = "created_dt")
     private LocalDateTime createdDt;
 
-    @Column(name = "EXPIRATION_DT")
+    @Column(name = "expiration_dt")
     private LocalDateTime expirationDt;
 }

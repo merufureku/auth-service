@@ -1,6 +1,7 @@
 package com.merufureku.aromatica.auth_service.utilities;
 
 import com.merufureku.aromatica.auth_service.config.KeyConfig;
+import com.merufureku.aromatica.auth_service.dto.token.ParsedTokenInfo;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -53,5 +54,13 @@ public class TokenUtility {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    public ParsedTokenInfo parseAndValidateToken(String token) {
+        var claims = parseToken(token);
+        var jti = claims.getId();
+        var userId = claims.get("userId", Integer.class);
+
+        return new ParsedTokenInfo(userId, jti);
     }
 }
