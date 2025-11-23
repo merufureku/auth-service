@@ -38,4 +38,9 @@ public class Token {
 
     @Column(name = "expiration_dt")
     private LocalDateTime expirationDt;
+
+    @ManyToOne
+    @MapsId("userId")
+    @JoinColumn(name = "user_id")
+    private Users user;
 }

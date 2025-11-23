@@ -15,6 +15,8 @@ public interface IAuthService {
 
     BaseResponse<UpdateUserDetailsResponse> updateProfile(Integer id, UpdateUserDetailsParam updateUserDetailsParam, BaseParam baseParam);
 
+    boolean deleteAccount(Integer id, BaseParam baseParam);
+
     boolean changePassword(Integer id, ChangePasswordParam changePasswordParam, BaseParam baseParam);
 
     BaseResponse<NewAccessTokenResponse> refreshAccessToken(Integer userId, BaseParam baseParam);

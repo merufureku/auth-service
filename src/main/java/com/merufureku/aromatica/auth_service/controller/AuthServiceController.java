@@ -76,6 +76,17 @@ public class AuthServiceController {
         return ResponseEntity.ok(response).getBody();
     }
 
+    @DeleteMapping("/auth/me")
+    @Operation(summary = "Delete my account")
+    public ResponseEntity<Void> deleteAccount(@RequestParam(name = "version", required = false, defaultValue = "1") int version,
+                                              @RequestParam(name = "correlationId", required = false, defaultValue = "") String correlationId) {
+        var baseParam = new BaseParam(version, correlationId);
+
+        authService.deleteAccount(getUserId(), baseParam);
+
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/auth/me/change-password")
     @Operation(summary = "Change my password")
     public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordParam changePasswordParam,
@@ -91,7 +102,7 @@ public class AuthServiceController {
     @PostMapping("/auth/refresh/access-token")
     @Operation(summary = "Refresh access token")
     public BaseResponse<NewAccessTokenResponse> refreshAccessToken(@RequestParam(name = "version", required = false, defaultValue = "1") int version,
-                                                   @RequestParam(name = "correlationId", required = false, defaultValue = "") String correlationId) {
+                                                                   @RequestParam(name = "correlationId", required = false, defaultValue = "") String correlationId) {
         var baseParam = new BaseParam(version, correlationId);
 
         var response = authService.refreshAccessToken(getUserId(), baseParam);

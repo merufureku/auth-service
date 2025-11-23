@@ -125,6 +125,21 @@ public class AuthServiceImpl1 implements IAuthService {
     }
 
     @Override
+    public boolean deleteAccount(Integer id, BaseParam baseParam) {
+
+        logger.info("Deleting account for user with ID: {}", id);
+
+        var user = usersRepository.findById(id)
+                .orElseThrow(() -> new ServiceException(NO_USER_FOUND));
+
+        usersRepository.delete(user);
+
+        logger.info("Account deleted successfully for user with ID: {}", id);
+
+        return true;
+    }
+
+    @Override
     public boolean changePassword(Integer id, ChangePasswordParam changePasswordParam, BaseParam baseParam) {
 
         logger.info("Changing password for user with ID: {}", id);
