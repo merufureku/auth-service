@@ -55,7 +55,8 @@ public class AuthServiceImpl1 implements IAuthService {
 
         logger.info("User registered successfully with ID: {}", users.getId());
 
-        return new BaseResponse<>(HttpStatus.OK.value(), "Get User Profile Success", response);
+        return new BaseResponse<>(HttpStatus.OK.value(),
+                "Get User Profile Success", response);
     }
 
     @Override
@@ -71,16 +72,16 @@ public class AuthServiceImpl1 implements IAuthService {
             throw new ServiceException(NO_USER_FOUND);
         }
 
-        tokenHelper.invalidateToken(user.getId());
+        tokenHelper.invalidateAllUserToken(user.getId());
 
-        String generatedToken = tokenHelper.generateToken(user);
+        LoginResponse generatedToken = tokenHelper.generateToken(user);
 
         authServiceHelper.updateLastLoginDate(user);
 
         logger.info("Authentication success for {}", params.username());
 
-        return new BaseResponse<>(HttpStatus.OK.value(), "Authenticate Success",
-                new LoginResponse(user.getId(), generatedToken));
+        return new BaseResponse<>(HttpStatus.OK.value(),
+                "Authenticate Success", generatedToken);
     }
 
     @Override
@@ -88,7 +89,7 @@ public class AuthServiceImpl1 implements IAuthService {
 
         logger.info("Logging out user with ID: {}", id);
 
-        tokenHelper.invalidateToken(id);
+        tokenHelper.invalidateAllUserToken(id);
 
         logger.info("User with ID: {} logged out successfully", id);
 
@@ -105,8 +106,8 @@ public class AuthServiceImpl1 implements IAuthService {
 
         logger.info("Fetched details for user with ID: {} success", id);
 
-        return new BaseResponse<>(HttpStatus.OK.value(), "Get User Details Success",
-                new MyDetailsResponse(user));
+        return new BaseResponse<>(HttpStatus.OK.value(),
+                "Get User Details Success", new MyDetailsResponse(user));
     }
 
     @Override
@@ -119,8 +120,8 @@ public class AuthServiceImpl1 implements IAuthService {
 
         var updatedUser = authServiceHelper.updateUser(user, updateUserDetailsParam);
 
-        return new BaseResponse<>(HttpStatus.OK.value(), "Update Profile Success",
-                new UpdateUserDetailsResponse(updatedUser));
+        return new BaseResponse<>(HttpStatus.OK.value(),
+                "Update Profile Success", new UpdateUserDetailsResponse(updatedUser));
     }
 
     @Override
@@ -145,5 +146,22 @@ public class AuthServiceImpl1 implements IAuthService {
         logger.info("Password changed successfully for user with ID: {}", id);
 
         return true;
+    }
+
+    @Override
+    public BaseResponse<NewAccessTokenResponse> refreshAccessToken(Integer userId, BaseParam baseParam) {
+
+        logger.info("Refreshing access token for user with ID: {}", userId);
+
+        var user = usersRepository.findById(userId)
+                .orElseThrow(() -> new ServiceException(NO_USER_FOUND));
+
+        var newAccessToken = tokenHelper.generateNewAccessToken(user);
+
+        logger.info("Access token refreshed successfully for user with ID: {}", userId);
+
+        return new BaseResponse<>(HttpStatus.OK.value(),
+                "Refresh Access Token Success", new NewAccessTokenResponse(user.getId(), newAccessToken));
+
     }
 }

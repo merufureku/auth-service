@@ -47,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             Claims claims = tokenUtility.parseToken(token);
             ParsedTokenInfo parsedTokenInfo = tokenUtility.parseAndValidateToken(token);
-            tokenHelper.validateToken(parsedTokenInfo.userId(), parsedTokenInfo.jti(), token);
+            tokenHelper.validateAccessToken(parsedTokenInfo.userId(), parsedTokenInfo.jti(), token);
 
             // Validate token
             Long userId = claims.get("userId", Long.class);

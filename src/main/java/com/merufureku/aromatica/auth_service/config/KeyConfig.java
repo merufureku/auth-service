@@ -6,11 +6,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class KeyConfig {
 
-    @Value("${jwt.secret.key}")
-    private String jwtSecretKey;
+    @Value("${jwt.access.secret.key}")
+    private String jwtAccessSecretKey;
 
-    public String getJwtSecretKey() {
-        return jwtSecretKey;
+    @Value("${jwt.refresh.secret.key}")
+    private String jwtRefreshSecretKey;
+
+    public String getJwtAccessSecretKey() {
+        return jwtAccessSecretKey;
     }
-
+    
+    public String getJwtRefreshSecretKey() {
+        return jwtRefreshSecretKey;
+    }
 }

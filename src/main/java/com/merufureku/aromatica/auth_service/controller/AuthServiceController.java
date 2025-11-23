@@ -88,6 +88,17 @@ public class AuthServiceController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/auth/refresh/access-token")
+    @Operation(summary = "Refresh access token")
+    public BaseResponse<NewAccessTokenResponse> refreshAccessToken(@RequestParam(name = "version", required = false, defaultValue = "1") int version,
+                                                   @RequestParam(name = "correlationId", required = false, defaultValue = "") String correlationId) {
+        var baseParam = new BaseParam(version, correlationId);
+
+        var response = authService.refreshAccessToken(getUserId(), baseParam);
+
+        return ResponseEntity.ok(response).getBody();
+    }
+
     private Integer getUserId(){
 
         var userId = (Long) SecurityContextHolder.getContext()

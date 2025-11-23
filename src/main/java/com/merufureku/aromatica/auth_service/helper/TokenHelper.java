@@ -3,6 +3,7 @@ package com.merufureku.aromatica.auth_service.helper;
 import com.merufureku.aromatica.auth_service.dao.entity.Token;
 import com.merufureku.aromatica.auth_service.dao.entity.Users;
 import com.merufureku.aromatica.auth_service.dao.repository.TokenRepository;
+import com.merufureku.aromatica.auth_service.dto.responses.LoginResponse;
 import com.merufureku.aromatica.auth_service.exception.ServiceException;
 import com.merufureku.aromatica.auth_service.utilities.TokenUtility;
 import org.apache.logging.log4j.LogManager;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static com.merufureku.aromatica.auth_service.constants.AuthConstants.*;
 import static com.merufureku.aromatica.auth_service.enums.CustomStatusEnums.INVALID_TOKEN;
 import static com.merufureku.aromatica.auth_service.utilities.DateUtility.isDateExpired;
 
@@ -32,37 +34,58 @@ public class TokenHelper {
         this.authServiceHelper = authServiceHelper;
     }
 
-    public String generateToken(Users user){
+    public LoginResponse generateToken(Users user){
 
         var roleName = authServiceHelper.getUserRole(user);
 
         logger.info("Generating token for userId={}, role={}", user.getId(), roleName);
 
-        var jti = UUID.randomUUID().toString();
-        var generatedToken = tokenUtility.generateToken(jti, user.getId(), roleName);
+        var accessJti = UUID.randomUUID().toString();
+        var refreshJti = UUID.randomUUID().toString();
+        var generatedAccessToken = tokenUtility.generateToken(accessJti, user.getId(), ACCESS_TOKEN, roleName);
+        var generatedRefreshToken = tokenUtility.generateToken(refreshJti, user.getId(), REFRESH_TOKEN, roleName);
 
-        saveToken(jti, user.getId(), generatedToken);
+        saveToken(user.getId(), ACCESS_TOKEN, accessJti, generatedAccessToken);
+        saveToken(user.getId(), REFRESH_TOKEN, refreshJti, generatedRefreshToken);
 
-        return generatedToken;
+        return new LoginResponse(user.getId(), new LoginResponse
+                .Token(generatedAccessToken, generatedRefreshToken));
     }
 
-    private void saveToken(String id, Integer userId, String generatedToken){
+    private void saveToken(Integer userId, String type, String jti, String generatedToken){
+        LocalDateTime timeNow = LocalDateTime.now();
+        LocalDateTime expirationDate = type.equals(ACCESS_TOKEN) ?
+                timeNow.plusMinutes(ACCESS_TOKEN_EXPIRATION_MINUTES) :
+                timeNow.plusDays(REFRESH_TOKEN_EXPIRATION_DAYS);
 
         var token = Token.builder()
-                .jti(id)
                 .userId(userId)
                 .token(generatedToken)
-                .createdDt(LocalDateTime.now())
-                .expirationDt(LocalDateTime.now().plusMinutes(5))
+                .type(type)
+                .jti(jti)
+                .createdDt(timeNow)
+                .expirationDt(expirationDate)
                 .build();
 
         tokenRepository.save(token);
     }
 
-    public void validateToken(Integer userId, String jti,  String validatingToken){
+    public String generateNewAccessToken(Users user){
+        tokenRepository.deleteByUserIdAndType(user.getId(), ACCESS_TOKEN);
+
+        var accessJti = UUID.randomUUID().toString();
+        var roleName = authServiceHelper.getUserRole(user);
+        var token = tokenUtility.generateToken(accessJti, user.getId(), ACCESS_TOKEN, roleName);
+
+        saveToken(user.getId(), ACCESS_TOKEN, accessJti, token);
+
+        return token;
+    }
+
+    public void validateAccessToken(Integer userId, String jti, String validatingToken){
         logger.info("Validating token for: {}", userId);
 
-        var originalToken = tokenRepository.findByUserIdAndJti(userId, jti)
+        var originalToken = tokenRepository.findByUserIdAndJtiAndType(userId, jti, ACCESS_TOKEN)
                 .orElseThrow(() -> new ServiceException(INVALID_TOKEN));
 
         if (!originalToken.getToken().equals(validatingToken)){
@@ -75,9 +98,9 @@ public class TokenHelper {
         }
     }
 
-    public void invalidateToken(Integer userId){
-        logger.info("Removing token based from User ID {}", userId);
-        tokenRepository.deleteById(userId);
+    public void invalidateAllUserToken(Integer userId){
+        logger.info("Removing refresh and access token of User ID {}", userId);
+        tokenRepository.deleteByUserId(userId);
         logger.info(TOKEN_INVALIDATED);
     }
 }
