@@ -78,7 +78,7 @@ public class AuthServiceImpl1 implements IAuthService {
 
         tokenHelper.invalidateAllUserToken(user.getId());
 
-        LoginResponse generatedToken = tokenHelper.generateToken(user);
+        var generatedToken = tokenHelper.generateToken(user);
 
         authServiceHelper.updateLastLoginDate(user);
 
@@ -172,7 +172,7 @@ public class AuthServiceImpl1 implements IAuthService {
 
         logger.info("Refreshing access token");
 
-        String token = refreshToken.substring(7);
+        var token = refreshToken.substring(7);
 
         var claims = tokenUtility.parseToken(token, REFRESH_TOKEN);
         var userId = claims.get("userId", Integer.class);

@@ -37,7 +37,7 @@ public class AuthServiceHelper {
     public Users saveUser(RegisterParam newUserParam){
         logger.info("Saving new user: {}", newUserParam.username());
 
-        LocalDateTime timeNow = LocalDateTime.now();
+        var timeNow = LocalDateTime.now();
 
         var bCryptPasswordEncoder = new BCryptPasswordEncoder(12);
 

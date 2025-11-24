@@ -53,8 +53,8 @@ public class TokenHelper {
     }
 
     private void saveToken(Integer userId, String type, String jti, String generatedToken){
-        LocalDateTime timeNow = LocalDateTime.now();
-        LocalDateTime expirationDate = type.equals(ACCESS_TOKEN) ?
+        var timeNow = LocalDateTime.now();
+        var expirationDate = type.equals(ACCESS_TOKEN) ?
                 timeNow.plusMinutes(ACCESS_TOKEN_EXPIRATION_MINUTES) :
                 timeNow.plusDays(REFRESH_TOKEN_EXPIRATION_DAYS);
 
