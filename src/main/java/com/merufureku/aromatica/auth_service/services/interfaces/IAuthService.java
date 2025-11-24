@@ -19,5 +19,5 @@ public interface IAuthService {
 
     boolean changePassword(Integer id, ChangePasswordParam changePasswordParam, BaseParam baseParam);
 
-    BaseResponse<NewAccessTokenResponse> refreshAccessToken(Integer userId, BaseParam baseParam);
+    BaseResponse<NewAccessTokenResponse> refreshAccessToken(String refreshToken, BaseParam baseParam);
 }

@@ -35,7 +35,8 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/login",
-                                "/register").permitAll()
+                                "/register",
+                                "/auth/refresh/access-token").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex

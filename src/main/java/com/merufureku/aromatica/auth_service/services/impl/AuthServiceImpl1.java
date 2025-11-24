@@ -7,6 +7,7 @@ import com.merufureku.aromatica.auth_service.exception.ServiceException;
 import com.merufureku.aromatica.auth_service.helper.AuthServiceHelper;
 import com.merufureku.aromatica.auth_service.helper.TokenHelper;
 import com.merufureku.aromatica.auth_service.services.interfaces.IAuthService;
+import com.merufureku.aromatica.auth_service.utilities.TokenUtility;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.merufureku.aromatica.auth_service.constants.AuthConstants.REFRESH_TOKEN;
 import static com.merufureku.aromatica.auth_service.enums.CustomStatusEnums.*;
 
 @Service
@@ -27,12 +29,14 @@ public class AuthServiceImpl1 implements IAuthService {
     private final TokenHelper tokenHelper;
     private final UsersRepository usersRepository;
     private final PasswordEncoder passwordEncoder;
+    private final TokenUtility tokenUtility;
 
-    public AuthServiceImpl1(AuthServiceHelper authServiceHelper, TokenHelper tokenHelper, UsersRepository usersRepository, PasswordEncoder passwordEncoder) {
+    public AuthServiceImpl1(AuthServiceHelper authServiceHelper, TokenHelper tokenHelper, UsersRepository usersRepository, PasswordEncoder passwordEncoder, TokenUtility tokenUtility) {
         this.authServiceHelper = authServiceHelper;
         this.tokenHelper = tokenHelper;
         this.usersRepository = usersRepository;
         this.passwordEncoder = passwordEncoder;
+        this.tokenUtility = tokenUtility;
     }
 
     @Override
@@ -164,9 +168,17 @@ public class AuthServiceImpl1 implements IAuthService {
     }
 
     @Override
-    public BaseResponse<NewAccessTokenResponse> refreshAccessToken(Integer userId, BaseParam baseParam) {
+    public BaseResponse<NewAccessTokenResponse> refreshAccessToken(String refreshToken, BaseParam baseParam) {
 
-        logger.info("Refreshing access token for user with ID: {}", userId);
+        logger.info("Refreshing access token");
+
+        String token = refreshToken.substring(7);
+
+        var claims = tokenUtility.parseToken(token, REFRESH_TOKEN);
+        var userId = claims.get("userId", Integer.class);
+        var jti = claims.getId();
+
+        tokenHelper.validateToken(userId, jti, token, REFRESH_TOKEN);
 
         var user = usersRepository.findById(userId)
                 .orElseThrow(() -> new ServiceException(NO_USER_FOUND));

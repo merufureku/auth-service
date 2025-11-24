@@ -82,17 +82,17 @@ public class TokenHelper {
         return token;
     }
 
-    public void validateAccessToken(Integer userId, String jti, String validatingToken){
+    public void validateToken(Integer userId, String jti, String validatingToken, String tokenType){
         logger.info("Validating token for: {}", userId);
 
-        var originalToken = tokenRepository.findByUserIdAndJtiAndType(userId, jti, ACCESS_TOKEN)
+        var originalToken = tokenRepository.findByUserIdAndJtiAndType(userId, jti, tokenType)
                 .orElseThrow(() -> new ServiceException(INVALID_TOKEN));
 
         if (!originalToken.getToken().equals(validatingToken)){
             logger.info("Invalid token found!");
             throw new ServiceException(INVALID_TOKEN);
         }
-        if (isDateExpired(originalToken.getExpirationDt())){
+        if (isDateExpired(originalToken.getExpirationDt(), tokenType)){
             logger.info("Token expired!");
             throw new ServiceException(INVALID_TOKEN);
         }

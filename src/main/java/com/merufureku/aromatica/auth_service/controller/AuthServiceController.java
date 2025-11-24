@@ -101,11 +101,12 @@ public class AuthServiceController {
 
     @PostMapping("/auth/refresh/access-token")
     @Operation(summary = "Refresh access token")
-    public BaseResponse<NewAccessTokenResponse> refreshAccessToken(@RequestParam(name = "version", required = false, defaultValue = "1") int version,
+    public BaseResponse<NewAccessTokenResponse> refreshAccessToken(@RequestHeader("Authorization") String refreshToken,
+                                                                   @RequestParam(name = "version", required = false, defaultValue = "1") int version,
                                                                    @RequestParam(name = "correlationId", required = false, defaultValue = "") String correlationId) {
         var baseParam = new BaseParam(version, correlationId);
 
-        var response = authService.refreshAccessToken(getUserId(), baseParam);
+        var response = authService.refreshAccessToken(refreshToken, baseParam);
 
         return ResponseEntity.ok(response).getBody();
     }
