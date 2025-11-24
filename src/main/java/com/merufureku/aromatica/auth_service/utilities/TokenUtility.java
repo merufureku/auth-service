@@ -1,7 +1,7 @@
 package com.merufureku.aromatica.auth_service.utilities;
 
 import com.merufureku.aromatica.auth_service.config.KeyConfig;
-import com.merufureku.aromatica.auth_service.dto.token.ParsedTokenInfo;
+import com.merufureku.aromatica.auth_service.exception.ServiceException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -10,11 +10,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
 import java.util.Base64;
 import java.util.Date;
 
 import static com.merufureku.aromatica.auth_service.constants.AuthConstants.REFRESH_TOKEN;
+import static com.merufureku.aromatica.auth_service.enums.CustomStatusEnums.INVALID_TOKEN;
 
 @Component
 public class TokenUtility {
@@ -57,23 +57,26 @@ public class TokenUtility {
         return token;
     }
 
-    public Claims parseToken(String token) {
+    public Claims parseToken(String token, String type) {
 
-        var secretKey = Keys.hmacShaKeyFor(Base64.getDecoder()
-                .decode(keyConfig.getJwtAccessSecretKey()));
+        try{
+            var secretKeyString = getSecretKey(type);
+            var secretKey = Keys.hmacShaKeyFor(Base64.getDecoder()
+                    .decode(secretKeyString));
 
-        return Jwts.parser()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+            return Jwts.parser()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (Exception e){
+            throw new ServiceException(INVALID_TOKEN);
+        }
     }
 
-    public ParsedTokenInfo parseAndValidateToken(String token) {
-        var claims = parseToken(token);
-        var jti = claims.getId();
-        var userId = claims.get("userId", Integer.class);
-
-        return new ParsedTokenInfo(userId, jti);
+    private String getSecretKey(String type) {
+        return type.equals(REFRESH_TOKEN) ?
+                keyConfig.getJwtRefreshSecretKey() :
+                keyConfig.getJwtAccessSecretKey();
     }
 }

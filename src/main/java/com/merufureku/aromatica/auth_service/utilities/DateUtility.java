@@ -4,14 +4,22 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
+import static com.merufureku.aromatica.auth_service.constants.AuthConstants.ACCESS_TOKEN;
+import static com.merufureku.aromatica.auth_service.constants.AuthConstants.REFRESH_TOKEN;
+
 @Component
 public class DateUtility {
 
-    public static boolean isDateExpired(LocalDateTime dateTime) {
-        // Get the current date-time minus 5 minutes
-        LocalDateTime nowMinus5Min = LocalDateTime.now().minusMinutes(5);
+    public static boolean isDateExpired(LocalDateTime dateTime, String type) {
+        LocalDateTime minusDateTime = switch (type) {
+            case ACCESS_TOKEN -> dateTime.minusMinutes(5);
+            case REFRESH_TOKEN -> dateTime.minusDays(7);
+            default -> throw new IllegalArgumentException("Invalid type: " + type);
+        };
 
-        // Check if the given date-time is before nowMinus5Min
-        return dateTime.isBefore(nowMinus5Min);
+        LocalDateTime nowMinusExpiration = minusDateTime;
+
+        // Check if the given date-time is before nowMinusExpiration
+        return dateTime.isBefore(nowMinusExpiration);
     }
 }
