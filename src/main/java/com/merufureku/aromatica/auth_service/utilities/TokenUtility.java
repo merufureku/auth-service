@@ -51,9 +51,6 @@ public class TokenUtility {
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
 
-
-        logger.info("Generate Token Success!: {}", token);
-
         return token;
     }
 
