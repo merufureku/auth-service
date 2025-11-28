@@ -96,7 +96,7 @@ class AuthServiceImpl1Test {
         registerParam = new RegisterParam("newuser", "password123", "Jane", "Smith", "jane@example.com");
         loginParam = new LoginParam("testuser", "password123");
         updateUserDetailsParam = new UpdateUserDetailsParam(
-                "Charmaine", "Yap", "Charmaine@example.com", "+1234567891", "Updated bio", "Japan   ", "profile.jpg", "cover.jpg"
+                "Charmaine", "Yap", "Charmaine@example.com", "+1234567891", "Updated bio", "Japan", "profile.jpg", "cover.jpg"
         );
         changePasswordParam = new ChangePasswordParam("oldPassword123", "newPassword123", "newPassword123");
     }
