@@ -11,7 +11,6 @@ import com.merufureku.aromatica.auth_service.utilities.TokenUtility;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -157,8 +156,7 @@ public class AuthServiceImpl1 implements IAuthService {
             throw new ServiceException(INVALID_PASSWORD);
         }
 
-        var bCryptPasswordEncoder = new BCryptPasswordEncoder(12);
-        user.setPassword(bCryptPasswordEncoder.encode(changePasswordParam.newPassword()));
+        user.setPassword(passwordEncoder.encode(changePasswordParam.newPassword()));
 
         usersRepository.save(user);
 
@@ -171,6 +169,10 @@ public class AuthServiceImpl1 implements IAuthService {
     public BaseResponse<NewAccessTokenResponse> refreshAccessToken(String refreshToken, BaseParam baseParam) {
 
         logger.info("Refreshing access token");
+
+        if (refreshToken == null || !refreshToken.startsWith("Bearer ")) {
+            throw new ServiceException(INVALID_TOKEN);
+        }
 
         var token = refreshToken.substring(7);
 
