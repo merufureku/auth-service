@@ -113,9 +113,7 @@ public class AuthServiceController {
 
     private Integer getUserId(){
 
-        var userId = (Long) SecurityContextHolder.getContext()
+        return (Integer) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
-
-        return userId.intValue();
     }
 }
