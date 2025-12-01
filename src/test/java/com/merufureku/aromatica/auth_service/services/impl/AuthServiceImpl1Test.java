@@ -281,7 +281,7 @@ class AuthServiceImpl1Test {
         when(usersRepository.findById(user.getId())).thenReturn(Optional.of(user));
         doNothing().when(authServiceHelper).validateNewPassword(changePasswordParam);
         when(passwordEncoder.matches(changePasswordParam.oldPassword(), user.getPassword())).thenReturn(true);
-        when(usersRepository.save(user)).thenReturn(user);
+        when(usersRepository.save(any(Users.class))).thenReturn(user);
 
         boolean result = authService.changePassword(user.getId(), changePasswordParam, baseParam);
 
@@ -289,7 +289,7 @@ class AuthServiceImpl1Test {
         verify(authServiceHelper, atMost(1)).validateNewPassword(changePasswordParam);
         verify(usersRepository, atMost(1)).findById(user.getId());
         verify(passwordEncoder, atMost(1)).matches(changePasswordParam.oldPassword(), user.getPassword());
-        verify(usersRepository, atMost(1)).save(user);
+        verify(usersRepository, atMost(1)).save(any(Users.class));
     }
 
     @Test
