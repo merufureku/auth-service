@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.time.LocalDateTime;
@@ -37,7 +38,7 @@ public class ExceptionAdvisor extends Exception{
     public ResponseEntity<Object> handleValidationExceptions(MethodArgumentNotValidException ex) {
         var errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage())
+            errors.put(error.getField(), error.getDefaultMessage())
         );
         return ResponseEntity.badRequest().body(errors);
     }
@@ -46,9 +47,31 @@ public class ExceptionAdvisor extends Exception{
     public ResponseEntity<Object> handleConstraintViolation(ConstraintViolationException ex) {
         var errors = new HashMap<>();
         ex.getConstraintViolations().forEach(violation ->
-                errors.put(violation.getPropertyPath().toString(), violation.getMessage())
+            errors.put(violation.getPropertyPath().toString(), violation.getMessage())
         );
         return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<Object> handleHandlerMethodValidationException(
+            HandlerMethodValidationException ex,
+            HttpServletRequest request) {
+
+        String message = ex.getMessage();
+        Object[] args = ex.getDetailMessageArguments();
+        if (args != null && args.length > 0 && args[0] != null) {
+            message = args[0].toString();
+        }
+
+        var errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                message,
+                request.getRequestURI(),
+                LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
@@ -67,6 +90,21 @@ public class ExceptionAdvisor extends Exception{
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
+            IllegalArgumentException ex,
+            HttpServletRequest request) {
+        var errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
+                request.getRequestURI(),
+                LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> genericErrorException(){
         return new ResponseEntity<>(
@@ -74,5 +112,4 @@ public class ExceptionAdvisor extends Exception{
                 HttpStatus.INTERNAL_SERVER_ERROR
         );
     }
-
 }

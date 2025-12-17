@@ -4,12 +4,12 @@ import jakarta.validation.constraints.NotBlank;
 
 public record ChangePasswordParam(
 
-        @NotBlank
+        @NotBlank(message = "Old password cannot be null")
         String oldPassword,
 
-        @NotBlank
+        @NotBlank(message = "New password cannot be null")
         String newPassword,
 
-        @NotBlank
+        @NotBlank(message = "Confirm password cannot be null")
         String confirmPassword
 ) {}

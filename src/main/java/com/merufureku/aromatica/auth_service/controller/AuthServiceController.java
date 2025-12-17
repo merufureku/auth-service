@@ -2,7 +2,7 @@ package com.merufureku.aromatica.auth_service.controller;
 
 import com.merufureku.aromatica.auth_service.dto.params.*;
 import com.merufureku.aromatica.auth_service.dto.responses.*;
-import com.merufureku.aromatica.auth_service.services.interfaces.IAuthService;
+import com.merufureku.aromatica.auth_service.services.factory.AuthServiceFactory;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 public class AuthServiceController {
 
-    private final IAuthService authService;
+    private final AuthServiceFactory authServiceFactory;
 
-    public AuthServiceController(IAuthService authService) {
-        this.authService = authService;
+    public AuthServiceController(AuthServiceFactory authServiceFactory) {
+        this.authServiceFactory = authServiceFactory;
     }
 
     @PostMapping("/register")
@@ -25,7 +25,7 @@ public class AuthServiceController {
                                                    @RequestParam(name = "correlationId", required = false, defaultValue = "") String correlationId) {
         var baseParam = new BaseParam(version, correlationId);
 
-        var response = authService.register(registerParam, baseParam);
+        var response = authServiceFactory.getService(version).register(registerParam, baseParam);
 
         return ResponseEntity.ok(response).getBody();
     }
@@ -37,7 +37,7 @@ public class AuthServiceController {
                                              @RequestParam(name = "correlationId", required = false, defaultValue = "") String correlationId) {
         var baseParam = new BaseParam(version, correlationId);
 
-        var response = authService.login(loginParam, baseParam);
+        var response = authServiceFactory.getService(version).login(loginParam, baseParam);
 
         return ResponseEntity.ok(response).getBody();
     }
@@ -48,7 +48,7 @@ public class AuthServiceController {
                                        @RequestParam(name = "correlationId", required = false, defaultValue = "") String correlationId) {
         var baseParam = new BaseParam(version, correlationId);
 
-        authService.logout(getUserId(), baseParam);
+        authServiceFactory.getService(version).logout(getUserId(), baseParam);
 
         return ResponseEntity.noContent().build();
     }
@@ -59,7 +59,7 @@ public class AuthServiceController {
                                                         @RequestParam(name = "correlationId", required = false, defaultValue = "") String correlationId) {
         var baseParam = new BaseParam(version, correlationId);
 
-        var response = authService.myDetails(getUserId(), baseParam);
+        var response = authServiceFactory.getService(version).myDetails(getUserId(), baseParam);
 
         return ResponseEntity.ok(response).getBody();
     }
@@ -71,7 +71,7 @@ public class AuthServiceController {
                                                                    @RequestParam(name = "correlationId", required = false, defaultValue = "") String correlationId) {
         var baseParam = new BaseParam(version, correlationId);
 
-        var response = authService.updateProfile(getUserId(), updateUserDetailsParam, baseParam);
+        var response = authServiceFactory.getService(version).updateProfile(getUserId(), updateUserDetailsParam, baseParam);
 
         return ResponseEntity.ok(response).getBody();
     }
@@ -82,7 +82,7 @@ public class AuthServiceController {
                                               @RequestParam(name = "correlationId", required = false, defaultValue = "") String correlationId) {
         var baseParam = new BaseParam(version, correlationId);
 
-        authService.deleteAccount(getUserId(), baseParam);
+        authServiceFactory.getService(version).deleteAccount(getUserId(), baseParam);
 
         return ResponseEntity.noContent().build();
     }
@@ -90,11 +90,11 @@ public class AuthServiceController {
     @PostMapping("/auth/me/change-password")
     @Operation(summary = "Change my password")
     public ResponseEntity<Void> changePassword(@Valid @RequestBody ChangePasswordParam changePasswordParam,
-                                                @RequestParam(name = "version", required = false, defaultValue = "1") int version,
+                                               @RequestParam(name = "version", required = false, defaultValue = "1") int version,
                                                @RequestParam(name = "correlationId", required = false, defaultValue = "") String correlationId) {
         var baseParam = new BaseParam(version, correlationId);
 
-        authService.changePassword(getUserId(), changePasswordParam, baseParam);
+        authServiceFactory.getService(version).changePassword(getUserId(), changePasswordParam, baseParam);
 
         return ResponseEntity.noContent().build();
     }
@@ -106,7 +106,7 @@ public class AuthServiceController {
                                                                    @RequestParam(name = "correlationId", required = false, defaultValue = "") String correlationId) {
         var baseParam = new BaseParam(version, correlationId);
 
-        var response = authService.refreshAccessToken(refreshToken, baseParam);
+        var response = authServiceFactory.getService(version).refreshAccessToken(refreshToken, baseParam);
 
         return ResponseEntity.ok(response).getBody();
     }
