@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum CustomStatusEnums {
 
-    NO_USER_FOUND(4000, "No User Found",HttpStatus.BAD_REQUEST),
+    NO_USER_FOUND(4000, "No User Found",HttpStatus.NOT_FOUND),
     INVALID_TOKEN(4001, "Invalid Token", HttpStatus.UNAUTHORIZED),
     USERNAME_ALREADY_EXIST(4002, "Username already exist", HttpStatus.CONFLICT),
     USER_HAS_NO_ROLES(4003, "Access denied. User does not have the required role.", HttpStatus.FORBIDDEN),
