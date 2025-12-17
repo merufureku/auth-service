@@ -15,7 +15,7 @@ import java.util.UUID;
 
 import static com.merufureku.aromatica.auth_service.constants.AuthConstants.*;
 import static com.merufureku.aromatica.auth_service.enums.CustomStatusEnums.INVALID_TOKEN;
-import static com.merufureku.aromatica.auth_service.utilities.DateUtility.isDateExpired;
+import static com.merufureku.aromatica.auth_service.utilities.DateUtility.isAccessTokenExpired;
 
 @Component
 public class TokenHelper {
@@ -92,7 +92,7 @@ public class TokenHelper {
             logger.info("Invalid token found!");
             throw new ServiceException(INVALID_TOKEN);
         }
-        if (isDateExpired(originalToken.getExpirationDt(), tokenType)){
+        if (isAccessTokenExpired(originalToken.getExpirationDt(), tokenType)){
             logger.info("Token expired!");
             throw new ServiceException(INVALID_TOKEN);
         }
