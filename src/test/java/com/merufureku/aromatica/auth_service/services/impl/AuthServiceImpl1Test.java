@@ -226,7 +226,7 @@ class AuthServiceImpl1Test {
                 .userDetails(userDetails)
                 .build();
 
-        when(usersRepository.findById(user.getId())).thenReturn(Optional.of(user));
+        when(usersRepository.findByIdWithUserDetails(user.getId())).thenReturn(Optional.of(user));
         when(authServiceHelper.updateUser(user, updateUserDetailsParam)).thenReturn(updatedUser);
 
         BaseResponse<UpdateUserDetailsResponse> response = authService.updateProfile(user.getId(), updateUserDetailsParam, baseParam);
@@ -236,19 +236,19 @@ class AuthServiceImpl1Test {
         assertEquals("Update Profile Success", response.message());
         assertNotNull(response.data());
 
-        verify(usersRepository, times(1)).findById(user.getId());
+        verify(usersRepository, times(1)).findByIdWithUserDetails(user.getId());
         verify(authServiceHelper, times(1)).updateUser(user, updateUserDetailsParam);
     }
 
     @Test
     void testUpdateProfile_whenUserNotExists_thenThrowException() {
-        when(usersRepository.findById(user.getId())).thenReturn(Optional.empty());
+        when(usersRepository.findByIdWithUserDetails(user.getId())).thenReturn(Optional.empty());
 
         ServiceException exception = assertThrows(ServiceException.class,
                 () -> authService.updateProfile(user.getId(), updateUserDetailsParam, baseParam));
 
         assertEquals(NO_USER_FOUND, exception.getCustomStatusEnums());
-        verify(usersRepository, times(1)).findById(user.getId());
+        verify(usersRepository, times(1)).findByIdWithUserDetails(user.getId());
         verify(authServiceHelper, never()).updateUser(any(Users.class), any(UpdateUserDetailsParam.class));
     }
 
