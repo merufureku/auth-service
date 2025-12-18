@@ -118,7 +118,7 @@ public class AuthServiceImpl1 implements IAuthService {
 
         logger.info("Updating details for user with ID: {}", id);
 
-        var user = usersRepository.findById(id)
+        var user = usersRepository.findByIdWithUserDetails(id)
                 .orElseThrow(() -> new ServiceException(NO_USER_FOUND));
 
         var updatedUser = authServiceHelper.updateUser(user, updateUserDetailsParam);
