@@ -1,5 +1,7 @@
 # Sensitive Files
 application-local.properties
+application-docker.properties
+.env
 
 HELP.md
 .gradle
